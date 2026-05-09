@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Käldr Setup Companion — Step by Step</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=VT323&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-deep: #060912;
+    --bg-mid: #0d1525;
+    --card: rgba(15, 23, 42, 0.7);
+    --card-border: rgba(120, 200, 255, 0.18);
+    --accent: #5ad6ff;
+    --accent-glow: rgba(90, 214, 255, 0.4);
+    --accent-warm: #ff8a4c;
+    --correct: #4ade80;
+    --warn: #fbbf24;
+    --danger: #f87171;
+    --text: #e8ecf5;
+    --text-dim: #94a3b8;
+    --muted: #64748b;
+  }
+
+  html, body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.55;
+  }
+
+  /* Ambient background glow */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -30%; left: -10%;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(90,214,255,0.07) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -30%; right: -10%;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(255,138,76,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 24px 18px 80px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .brand {
+    font-family: 'VT323', monospace;
+    color: var(--text-dim);
+    font-size: 1rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  h1.title {
+    font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-warm) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.01em;
+    margin-top: 6px;
+  }
+  .tagline {
+    color: var(--text-dim);
+    font-size: 1rem;
+    margin-top: 8px;
+  }
+
+  /* PROGRESS RAIL */
+  .progress-wrap {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    backdrop-filter: blur(14px);
+  }
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-family: 'VT323', monospace;
+    font-size: 1.05rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+  }
+  .progress-top .pct { color: var(--accent); font-weight: 700; }
+  .progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  /* STEP DOTS */
+  .step-dots {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14px;
+    gap: 4px;
+  }
+  .dot {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .dot.done { background: var(--correct); }
+  .dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+  .dot:hover:not(.active) { background: rgba(255,255,255,0.18); }
+
+  /* MAIN CARD */
+  .step-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(20, 30, 55, 0.85));
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    padding: 28px 24px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    margin-bottom: 18px;
+    animation: fadeIn 0.4s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .step-meta .num {
+    background: var(--accent);
+    color: var(--bg-deep);
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+  .step-meta .phase {
+    padding: 2px 10px;
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+  }
+
+  h2.step-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .step-intro {
+    color: var(--text-dim);
+    font-size: 1rem;
+    margin-bottom: 22px;
+  }
+
+  /* DIAGRAM AREA */
+  .diagram {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(120,200,255,0.1);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 22px;
+    text-align: center;
+  }
+  .diagram svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+  .diagram-caption {
+    font-family: 'VT323', monospace;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-top: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  /* INSTRUCTION LIST */
+  .instructions {
+    list-style: none;
+    counter-reset: inst;
+  }
+  .instructions li {
+    counter-increment: inst;
+    position: relative;
+    padding: 12px 16px 12px 50px;
+    margin-bottom: 8px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    transition: all 0.2s;
+  }
+  .instructions li:hover {
+    background: rgba(90,214,255,0.05);
+    border-color: rgba(90,214,255,0.15);
+  }
+  .instructions li::before {
+    content: counter(inst);
+    position: absolute;
+    left: 14px;
+    top: 12px;
+    width: 26px;
+    height: 26px;
+    background: rgba(90,214,255,0.15);
+    color: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-family: 'VT323', monospace;
+  }
+
+  /* CHECKLIST (checkpoints) */
+  .checklist {
+    margin-top: 18px;
+    padding: 18px;
+    background: rgba(74, 222, 128, 0.04);
+    border: 1px solid rgba(74, 222, 128, 0.18);
+    border-radius: 14px;
+  }
+  .checklist-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--correct);
+    margin-bottom: 12px;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
+  }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .check-item:hover { background: rgba(74,222,128,0.06); }
+  .check-box {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--text-dim);
+    border-radius: 6px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .check-item.checked .check-box {
+    background: var(--correct);
+    border-color: var(--correct);
+  }
+  .check-item.checked .check-box::after {
+    content: '✓';
+    color: var(--bg-deep);
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .check-text { flex: 1; font-size: 0.95rem; }
+  .check-item.checked .check-text {
+    color: var(--text-dim);
+    text-decoration: line-through;
+  }
+
+  /* CALLOUTS */
+  .callout {
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 0.95rem;
+  }
+  .callout .icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+  .callout-tip {
+    background: rgba(90,214,255,0.06);
+    border: 1px solid rgba(90,214,255,0.2);
+    color: var(--text);
+  }
+  .callout-tip .icon { color: var(--accent); }
+  .callout-warn {
+    background: rgba(251,191,36,0.06);
+    border: 1px solid rgba(251,191,36,0.25);
+  }
+  .callout-warn .icon { color: var(--warn); }
+  .callout-danger {
+    background: rgba(248,113,113,0.06);
+    border: 1px solid rgba(248,113,113,0.25);
+  }
+  .callout-danger .icon { color: var(--danger); }
+
+  /* NAV */
+  .nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    background: var(--card);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+  }
+  .nav-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .nav-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .nav-btn.primary {
+    background: linear-gradient(135deg, var(--accent), #3a9fc4);
+    color: var(--bg-deep);
+    border-color: transparent;
+    box-shadow: 0 4px 20px rgba(90,214,255,0.25);
+  }
+  .nav-btn.primary:hover:not(:disabled) {
+    box-shadow: 0 6px 30px rgba(90,214,255,0.4);
+  }
+
+  /* ACCESSORIES GRID (used in step 1) */
+  .acc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .acc-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: pointer;
+    user-select: none;
+  }
+  .acc-item:hover {
+    border-color: rgba(90,214,255,0.3);
+  }
+  .acc-item.found {
+    background: rgba(74,222,128,0.06);
+    border-color: rgba(74,222,128,0.3);
+  }
+  .acc-item svg {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 8px;
+    display: block;
+  }
+  .acc-item .label {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .acc-item .qty {
+    font-family: 'VT323', monospace;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .acc-item.found .label::before {
+    content: '✓ ';
+    color: var(--correct);
+  }
+
+  /* COMPLETION SCREEN */
+  .completion {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .completion h2 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--correct), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+  }
+  .badge {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--correct), var(--accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    box-shadow: 0 0 40px rgba(74,222,128,0.4);
+  }
+
+  /* FLOATING RESET */
+  .reset-btn {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    background: rgba(15, 23, 42, 0.85);
+    color: var(--text-dim);
+    border: 1px solid var(--card-border);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-family: 'VT323', monospace;
+    font-size: 0.9rem;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+    transition: color 0.2s;
+  }
+  .reset-btn:hover { color: var(--danger); }
+
+  @media (max-width: 600px) {
+    .container { padding: 16px 12px 80px; }
+    .step-card { padding: 22px 18px; }
+    h2.step-title { font-size: 1.35rem; }
+    .acc-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">Kiva Wellness · Käldr 1HP</div>
+      <h1 class="title">Setup Companion</h1>
+      <div class="tagline">A guided walk-through. No overwhelm. Tap your way to a working ice bath.</div>
+    </header>
+
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span>Step <span id="stepNum">1</span> of <span id="stepTotal">9</span></span>
+        <span><span class="pct" id="pctText">0%</span> COMPLETE</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+      <div class="step-dots" id="stepDots"></div>
+    </div>
+
+    <div id="stepContainer"></div>
+
+    <div class="nav">
+      <button class="nav-btn" id="prevBtn">← Back</button>
+      <button class="nav-btn primary" id="nextBtn">Start →</button>
+    </div>
+  </div>
+
+  <button class="reset-btn" id="resetBtn">Reset progress</button>
+
+<script>
+/* ============================================================
+   SVG DIAGRAMS — drawn inline so the file is fully portable
+   ============================================================ */
+
+const SVG = {
+  // Site placement diagram — chiller with clearance arrows
+  placement: `
+    <svg viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="chillGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2a3550"/>
+          <stop offset="1" stop-color="#0f1525"/>
+        </linearGradient>
+      </defs>
+      <!-- Wall behind -->
+      <rect x="20" y="40" width="460" height="20" fill="#1a2238" stroke="#5ad6ff" stroke-opacity="0.3"/>
+      <text x="250" y="35" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="VT323">WALL / OBSTRUCTION</text>
+
+      <!-- Chiller body -->
+      <rect x="180" y="120" width="140" height="100" rx="8" fill="url(#chillGrad)" stroke="#5ad6ff" stroke-width="1.5"/>
+      <!-- Fan circle -->
+      <circle cx="210" cy="170" r="32" fill="none" stroke="#5ad6ff" stroke-width="1.5"/>
+      <circle cx="210" cy="170" r="4" fill="#5ad6ff"/>
+      <line x1="210" y1="170" x2="210" y2="142" stroke="#5ad6ff" stroke-width="1.5"/>
+      <line x1="210" y1="170" x2="234" y2="184" stroke="#5ad6ff" stroke-width="1.5"/>
+      <line x1="210" y1="170" x2="186" y2="184" stroke="#5ad6ff" stroke-width="1.5"/>
+      <!-- Display -->
+      <circle cx="285" cy="155" r="14" fill="#0a1020" stroke="#5ad6ff" stroke-width="1"/>
+      <!-- Wheels -->
+      <circle cx="190" cy="225" r="6" fill="#1a2238" stroke="#5ad6ff" stroke-opacity="0.5"/>
+      <circle cx="305" cy="225" r="6" fill="#1a2238" stroke="#5ad6ff" stroke-opacity="0.5"/>
+
+      <!-- Ground -->
+      <line x1="20" y1="240" x2="480" y2="240" stroke="#94a3b8" stroke-opacity="0.3" stroke-dasharray="3,3"/>
+
+      <!-- Front clearance arrow (1m) -->
+      <line x1="50" y1="170" x2="175" y2="170" stroke="#ff8a4c" stroke-width="2" marker-start="url(#arrL)" marker-end="url(#arrR)"/>
+      <text x="112" y="160" fill="#ff8a4c" font-size="13" text-anchor="middle" font-weight="700">1 metre</text>
+      <text x="112" y="190" fill="#ff8a4c" font-size="10" text-anchor="middle" font-family="VT323">FAN SIDE</text>
+
+      <!-- Top clearance -->
+      <line x1="250" y1="62" x2="250" y2="118" stroke="#5ad6ff" stroke-width="1.5" marker-start="url(#arrU)" marker-end="url(#arrD)"/>
+      <text x="285" y="92" fill="#5ad6ff" font-size="11" text-anchor="middle">30cm</text>
+
+      <!-- Right clearance -->
+      <line x1="322" y1="170" x2="430" y2="170" stroke="#5ad6ff" stroke-width="1.5" marker-start="url(#arrL)" marker-end="url(#arrR)"/>
+      <text x="376" y="160" fill="#5ad6ff" font-size="11" text-anchor="middle">30cm</text>
+
+      <defs>
+        <marker id="arrL" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M10 0 L0 5 L10 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arrU" viewBox="0 0 10 10" refX="5" refY="2" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 10 L5 0 L10 10 z" fill="currentColor"/>
+        </marker>
+        <marker id="arrD" viewBox="0 0 10 10" refX="5" refY="8" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L5 10 L10 0 z" fill="currentColor"/>
+        </marker>
+      </defs>
+    </svg>
+  `,
+
+  // Tub layout
+  tub: `
+    <svg viewBox="0 0 500 240" xmlns="http://www.w3.org/2000/svg">
+      <!-- Tub side profile -->
+      <path d="M 80 80 Q 80 60 100 60 L 400 60 Q 420 60 420 80 L 420 200 Q 420 215 405 215 L 95 215 Q 80 215 80 200 Z" fill="#1a2238" stroke="#5ad6ff" stroke-width="1.5"/>
+      <!-- Water level -->
+      <path d="M 90 95 L 410 95" stroke="#5ad6ff" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+      <text x="250" y="88" fill="#5ad6ff" font-size="10" text-anchor="middle" font-family="VT323">FILL TO HERE — 10cm FROM TOP</text>
+      <!-- Inlet & outlet ports -->
+      <circle cx="120" cy="180" r="6" fill="#0a1020" stroke="#ff8a4c" stroke-width="2"/>
+      <text x="120" y="205" fill="#ff8a4c" font-size="10" text-anchor="middle" font-weight="700">OUTLET</text>
+      <text x="120" y="160" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">→ chiller IN</text>
+
+      <circle cx="380" cy="180" r="6" fill="#0a1020" stroke="#5ad6ff" stroke-width="2"/>
+      <text x="380" y="205" fill="#5ad6ff" font-size="10" text-anchor="middle" font-weight="700">INLET</text>
+      <text x="380" y="160" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">← chiller OUT</text>
+
+      <!-- Min water line -->
+      <path d="M 90 175 L 410 175" stroke="#fbbf24" stroke-width="1" stroke-dasharray="2,2" opacity="0.7"/>
+      <text x="450" y="178" fill="#fbbf24" font-size="9" text-anchor="middle" font-family="VT323">MIN</text>
+    </svg>
+  `,
+
+  // Connection diagram — chiller to tub
+  connections: `
+    <svg viewBox="0 0 520 280" xmlns="http://www.w3.org/2000/svg">
+      <!-- Tub on left -->
+      <path d="M 30 100 Q 30 90 40 90 L 200 90 Q 210 90 210 100 L 210 200 Q 210 210 200 210 L 40 210 Q 30 210 30 200 Z" fill="#1a2238" stroke="#5ad6ff" stroke-width="1.2"/>
+      <text x="120" y="80" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="VT323">ICE BATH TUB</text>
+
+      <!-- Tub ports -->
+      <circle cx="210" cy="130" r="5" fill="#5ad6ff"/>
+      <text x="225" y="125" fill="#5ad6ff" font-size="10" font-weight="700">INLET</text>
+      <circle cx="210" cy="180" r="5" fill="#ff8a4c"/>
+      <text x="225" y="175" fill="#ff8a4c" font-size="10" font-weight="700">OUTLET</text>
+
+      <!-- Chiller on right -->
+      <rect x="370" y="90" width="120" height="120" rx="6" fill="#1a2238" stroke="#5ad6ff" stroke-width="1.2"/>
+      <text x="430" y="80" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="VT323">CHILLER</text>
+
+      <!-- Sediment filter on chiller inlet (bottom) -->
+      <rect x="350" y="175" width="22" height="40" rx="3" fill="#0a1020" stroke="#ff8a4c" stroke-width="1.5"/>
+      <text x="361" y="232" fill="#ff8a4c" font-size="9" text-anchor="middle" font-family="VT323">SEDIMENT</text>
+
+      <!-- Chiller ports -->
+      <circle cx="370" cy="130" r="5" fill="#5ad6ff"/>
+      <text x="365" y="125" fill="#5ad6ff" font-size="10" text-anchor="end" font-weight="700">OUT</text>
+      <circle cx="372" cy="195" r="5" fill="#ff8a4c"/>
+      <text x="345" y="200" fill="#ff8a4c" font-size="10" text-anchor="end" font-weight="700">IN</text>
+
+      <!-- Hose: chiller OUT → tub INLET (top, blue) -->
+      <path d="M 370 130 Q 290 100 210 130" fill="none" stroke="#5ad6ff" stroke-width="3" opacity="0.85"/>
+      <text x="290" y="98" fill="#5ad6ff" font-size="10" text-anchor="middle" font-family="VT323">cold water → tub</text>
+
+      <!-- Hose: tub OUTLET → chiller IN (bottom, orange) -->
+      <path d="M 210 180 Q 290 230 372 195" fill="none" stroke="#ff8a4c" stroke-width="3" opacity="0.85"/>
+      <text x="290" y="248" fill="#ff8a4c" font-size="10" text-anchor="middle" font-family="VT323">warm water → chiller</text>
+    </svg>
+  `,
+
+  // Filter housing diagram
+  filter: `
+    <svg viewBox="0 0 320 280" xmlns="http://www.w3.org/2000/svg">
+      <!-- Housing top -->
+      <rect x="100" y="40" width="120" height="40" rx="4" fill="#2a3550" stroke="#5ad6ff" stroke-width="1.5"/>
+      <text x="160" y="32" fill="#94a3b8" font-size="10" text-anchor="middle" font-family="VT323">FILTER HEAD</text>
+
+      <!-- Clear housing -->
+      <rect x="110" y="80" width="100" height="140" rx="3" fill="rgba(90,214,255,0.08)" stroke="#5ad6ff" stroke-width="1.2"/>
+
+      <!-- Filter cartridge inside -->
+      <rect x="135" y="100" width="50" height="100" rx="2" fill="#1a2238" stroke="#ff8a4c" stroke-width="1.5"/>
+      <line x1="135" y1="115" x2="185" y2="115" stroke="#ff8a4c" stroke-width="0.5"/>
+      <line x1="135" y1="130" x2="185" y2="130" stroke="#ff8a4c" stroke-width="0.5"/>
+      <line x1="135" y1="145" x2="185" y2="145" stroke="#ff8a4c" stroke-width="0.5"/>
+      <line x1="135" y1="160" x2="185" y2="160" stroke="#ff8a4c" stroke-width="0.5"/>
+      <line x1="135" y1="175" x2="185" y2="175" stroke="#ff8a4c" stroke-width="0.5"/>
+      <line x1="135" y1="190" x2="185" y2="190" stroke="#ff8a4c" stroke-width="0.5"/>
+
+      <!-- Arrow pointing to plastic wrap warning -->
+      <text x="280" y="150" fill="#fbbf24" font-size="11" text-anchor="middle" font-family="VT323">⚠ REMOVE</text>
+      <text x="280" y="165" fill="#fbbf24" font-size="11" text-anchor="middle" font-family="VT323">PLASTIC</text>
+      <line x1="240" y1="150" x2="195" y2="150" stroke="#fbbf24" stroke-width="1" marker-end="url(#warnArr)"/>
+
+      <!-- Bottom collar -->
+      <rect x="105" y="220" width="110" height="20" rx="3" fill="#2a3550" stroke="#5ad6ff" stroke-width="1.5"/>
+
+      <text x="160" y="262" fill="#5ad6ff" font-size="11" text-anchor="middle" font-family="VT323">use supplied wrench</text>
+
+      <defs>
+        <marker id="warnArr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/>
+        </marker>
+      </defs>
+    </svg>
+  `,
+
+  // Sediment filter detail
+  sediment: `
+    <svg viewBox="0 0 300 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Black top -->
+      <rect x="100" y="30" width="100" height="40" rx="6" fill="#0d1525" stroke="#5ad6ff" stroke-width="1.5"/>
+      <text x="150" y="55" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="VT323">BLACK ON TOP</text>
+
+      <!-- Threaded connection -->
+      <rect x="140" y="22" width="20" height="10" fill="#5ad6ff" opacity="0.5"/>
+      <text x="220" y="20" fill="#5ad6ff" font-size="10" font-family="VT323">→ chiller</text>
+
+      <!-- Clear housing -->
+      <path d="M 100 70 L 200 70 L 195 180 Q 190 195 175 195 L 125 195 Q 110 195 105 180 Z" fill="rgba(90,214,255,0.1)" stroke="#5ad6ff" stroke-width="1.5"/>
+
+      <!-- Mesh inside -->
+      <rect x="125" y="85" width="50" height="95" fill="none" stroke="#94a3b8" stroke-width="0.5" stroke-dasharray="2,2"/>
+      <text x="150" y="135" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">mesh</text>
+      <text x="150" y="148" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">strainer</text>
+
+      <text x="150" y="215" fill="#5ad6ff" font-size="11" text-anchor="middle" font-family="VT323">CLEAR HOUSING ON BOTTOM</text>
+    </svg>
+  `,
+
+  // Test button
+  testBtn: `
+    <svg viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Plug body -->
+      <rect x="60" y="40" width="160" height="120" rx="10" fill="#1a2238" stroke="#5ad6ff" stroke-width="1.5"/>
+      <!-- Test button -->
+      <rect x="100" y="70" width="80" height="30" rx="4" fill="#f87171" stroke="#fff" stroke-width="1"/>
+      <text x="140" y="90" fill="#fff" font-size="14" text-anchor="middle" font-weight="700">TEST</text>
+      <!-- Reset button -->
+      <rect x="100" y="115" width="80" height="20" rx="3" fill="#0a1020" stroke="#5ad6ff" stroke-width="1"/>
+      <text x="140" y="129" fill="#5ad6ff" font-size="10" text-anchor="middle" font-family="VT323">RESET</text>
+      <!-- Pointer -->
+      <line x1="40" y1="85" x2="98" y2="85" stroke="#fbbf24" stroke-width="2" marker-end="url(#tArr)"/>
+      <text x="40" y="78" fill="#fbbf24" font-size="11" text-anchor="end" font-family="VT323">PRESS THIS</text>
+      <defs>
+        <marker id="tArr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#fbbf24"/>
+        </marker>
+      </defs>
+    </svg>
+  `,
+
+  // Control panel
+  controlPanel: `
+    <svg viewBox="0 0 360 260" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer panel -->
+      <rect x="40" y="20" width="280" height="220" rx="14" fill="#0a1020" stroke="#5ad6ff" stroke-width="1.5"/>
+      <!-- Display circle -->
+      <circle cx="180" cy="120" r="78" fill="#040810" stroke="#5ad6ff" stroke-width="1.5"/>
+      <circle cx="180" cy="120" r="74" fill="none" stroke="#5ad6ff" stroke-opacity="0.3" stroke-width="1"/>
+
+      <!-- Display content -->
+      <text x="180" y="115" fill="#5ad6ff" font-size="32" text-anchor="middle" font-weight="700" font-family="VT323">5.2°</text>
+      <text x="180" y="140" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">CURRENT</text>
+
+      <!-- Wifi icon -->
+      <text x="180" y="62" fill="#5ad6ff" font-size="11" text-anchor="middle">⌃</text>
+
+      <!-- Buttons -->
+      <circle cx="100" cy="215" r="14" fill="#1a2238" stroke="#5ad6ff" stroke-width="1"/>
+      <text x="100" y="219" fill="#5ad6ff" font-size="14" text-anchor="middle">▲</text>
+      <text x="100" y="248" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">UP</text>
+
+      <circle cx="140" cy="215" r="14" fill="#1a2238" stroke="#5ad6ff" stroke-width="1"/>
+      <text x="140" y="219" fill="#5ad6ff" font-size="14" text-anchor="middle">▼</text>
+      <text x="140" y="248" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">DOWN</text>
+
+      <circle cx="220" cy="215" r="14" fill="#1a2238" stroke="#ff8a4c" stroke-width="1.5"/>
+      <text x="220" y="219" fill="#ff8a4c" font-size="9" text-anchor="middle" font-weight="700">SET</text>
+      <text x="220" y="248" fill="#ff8a4c" font-size="9" text-anchor="middle" font-family="VT323">SET</text>
+
+      <circle cx="260" cy="215" r="14" fill="#1a2238" stroke="#5ad6ff" stroke-width="1"/>
+      <text x="260" y="220" fill="#5ad6ff" font-size="14" text-anchor="middle">⏻</text>
+      <text x="260" y="248" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="VT323">PWR</text>
+    </svg>
+  `,
+
+  // Accessory mini icons
+  hose: `<svg viewBox="0 0 50 50"><path d="M 10 25 Q 25 10 40 25 Q 25 40 10 25" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="10" cy="25" r="3" fill="currentColor"/><circle cx="40" cy="25" r="3" fill="currentColor"/></svg>`,
+  filterIcon: `<svg viewBox="0 0 50 50"><rect x="18" y="10" width="14" height="30" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="18" y1="18" x2="32" y2="18" stroke="currentColor" stroke-width="1"/><line x1="18" y1="25" x2="32" y2="25" stroke="currentColor" stroke-width="1"/><line x1="18" y1="32" x2="32" y2="32" stroke="currentColor" stroke-width="1"/></svg>`,
+  wrench: `<svg viewBox="0 0 50 50"><circle cx="15" cy="15" r="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="19" y1="19" x2="38" y2="38" stroke="currentColor" stroke-width="3"/></svg>`,
+  manual: `<svg viewBox="0 0 50 50"><rect x="12" y="10" width="26" height="30" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><line x1="17" y1="18" x2="33" y2="18" stroke="currentColor" stroke-width="1.5"/><line x1="17" y1="24" x2="33" y2="24" stroke="currentColor" stroke-width="1.5"/><line x1="17" y1="30" x2="28" y2="30" stroke="currentColor" stroke-width="1.5"/></svg>`,
+  label: `<svg viewBox="0 0 50 50"><rect x="10" y="14" width="30" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="14" y1="22" x2="36" y2="22" stroke="currentColor" stroke-width="1"/><line x1="14" y1="28" x2="30" y2="28" stroke="currentColor" stroke-width="1"/></svg>`,
+  sedFilter: `<svg viewBox="0 0 50 50"><rect x="20" y="8" width="10" height="8" fill="currentColor" opacity="0.4"/><path d="M 16 16 L 34 16 L 32 40 Q 30 44 25 44 Q 20 44 18 40 Z" fill="none" stroke="currentColor" stroke-width="2"/></svg>`,
+  rings: `<svg viewBox="0 0 50 50"><circle cx="18" cy="20" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="32" cy="22" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="22" cy="32" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`,
+  flowMeter: `<svg viewBox="0 0 50 50"><rect x="18" y="10" width="14" height="30" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="25" cy="22" r="3" fill="currentColor"/><line x1="25" y1="22" x2="25" y2="16" stroke="currentColor" stroke-width="1.5"/></svg>`,
+  tape: `<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="14" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="25" cy="25" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>`
+};
+
+/* ============================================================
+   STEP DEFINITIONS
+   ============================================================ */
+
+const STEPS = [
+  // STEP 0 — Welcome
+  {
+    phase: 'Start',
+    title: 'Before we begin',
+    intro: "We'll go through 8 steps. Each one has clear instructions, a diagram, and a checklist. Tap items as you go — your progress is saved automatically.",
+    body: () => `
+      <div class="callout callout-tip">
+        <span class="icon">⏱</span>
+        <div><strong>Total time:</strong> About 30–45 minutes for first-time setup, plus a few hours for the water to chill before first use.</div>
+      </div>
+      <div class="callout callout-tip">
+        <span class="icon">🛠</span>
+        <div><strong>What you'll need on hand:</strong> The tub, the chiller, the accessories box, a tap or hose for filling, and a power outlet within reach.</div>
+      </div>
+      <div class="callout callout-warn">
+        <span class="icon">⚠</span>
+        <div><strong>Heads up:</strong> Don't power on the chiller until step 7. Running it dry will cause irreversible damage.</div>
+      </div>
+    `,
+    checks: []
+  },
+
+  // STEP 1 — Inventory
+  {
+    phase: 'Prep',
+    title: 'Check your accessories',
+    intro: "Before unpacking everything, let's confirm what came in the box. Tap each item as you find it.",
+    body: () => `
+      <div class="acc-grid" id="accGrid">
+        <div class="acc-item" data-acc="hoses"><div style="color: var(--accent)">${SVG.hose}</div><div class="label">Connection hoses</div><div class="qty">×2</div></div>
+        <div class="acc-item" data-acc="filters"><div style="color: var(--accent-warm)">${SVG.filterIcon}</div><div class="label">Filter cartridges</div><div class="qty">×3 spare</div></div>
+        <div class="acc-item" data-acc="wrench"><div style="color: var(--accent)">${SVG.wrench}</div><div class="label">Wrench</div><div class="qty">×1</div></div>
+        <div class="acc-item" data-acc="sed"><div style="color: var(--accent-warm)">${SVG.sedFilter}</div><div class="label">Sediment filter</div><div class="qty">×1</div></div>
+        <div class="acc-item" data-acc="rings"><div style="color: var(--accent)">${SVG.rings}</div><div class="label">Rubber sealing rings</div><div class="qty">set</div></div>
+        <div class="acc-item" data-acc="flow"><div style="color: var(--accent-warm)">${SVG.flowMeter}</div><div class="label">Flow meter</div><div class="qty">×1</div></div>
+        <div class="acc-item" data-acc="tape"><div style="color: var(--accent)">${SVG.tape}</div><div class="label">Plumbers tape</div><div class="qty">×1</div></div>
+        <div class="acc-item" data-acc="manual"><div style="color: var(--accent)">${SVG.manual}</div><div class="label">User manual</div><div class="qty">×1</div></div>
+        <div class="acc-item" data-acc="label"><div style="color: var(--accent-warm)">${SVG.label}</div><div class="label">Warning label</div><div class="qty">×1</div></div>
+      </div>
+      <div class="callout callout-tip" style="margin-top: 18px">
+        <span class="icon">💡</span>
+        <div>Missing something? Stop here and call Kiva on <strong>1800 945 229</strong> before going further.</div>
+      </div>
+    `,
+    onMount: () => {
+      document.querySelectorAll('#accGrid .acc-item').forEach(el => {
+        const key = `acc_${el.dataset.acc}`;
+        if (state.checks[key]) el.classList.add('found');
+        el.addEventListener('click', () => {
+          el.classList.toggle('found');
+          state.checks[key] = el.classList.contains('found');
+          saveState();
+        });
+      });
+    },
+    checks: []
+  },
+
+  // STEP 2 — Choose location
+  {
+    phase: 'Placement',
+    title: 'Pick the right spot',
+    intro: "You're installing in a pool area. The chiller needs shelter from rain and direct sun, plus serious breathing room.",
+    diagram: SVG.placement,
+    diagramCaption: 'Clearance plan: 1m in front of fan, 30cm on the other three sides',
+    body: () => `
+      <ul class="instructions">
+        <li><strong>Find an undercover spot</strong> — under a pergola, awning, or covered patio. Even brief rain or full afternoon sun will damage it.</li>
+        <li><strong>Out of direct sunlight</strong> — UV breaks down the casing and reduces cooling efficiency.</li>
+        <li><strong>Check clearances:</strong> 1 metre minimum in front of the fan, 30cm on the other three sides.</li>
+        <li><strong>Level, solid ground</strong> — concrete, paving, or decking. Don't tilt the chiller more than 45°.</li>
+        <li><strong>Power within reach</strong> — a dedicated outdoor weatherproof outlet, RCD-protected. No extension cords.</li>
+      </ul>
+      <div class="callout callout-warn">
+        <span class="icon">🏊</span>
+        <div><strong>Pool area extra:</strong> Avoid spots where pool splash, chlorine spray, or sunscreen drift will hit the chiller. Keep at least a couple of metres from the pool edge if possible.</div>
+      </div>
+    `,
+    checks: [
+      "Spot is undercover (rain-protected)",
+      "Spot is out of direct sun",
+      "1m clear in front of the fan",
+      "30cm clear on the other three sides",
+      "Ground is level and solid",
+      "Weatherproof power outlet within reach"
+    ]
+  },
+
+  // STEP 3 — Tub placement & prep
+  {
+    phase: 'Placement',
+    title: 'Position the tub',
+    intro: "The tub goes near the chiller. Get it into its final spot now — once it's full of water it'll weigh around 440kg.",
+    diagram: SVG.tub,
+    diagramCaption: 'Side profile showing inlet (top), outlet (bottom) and fill levels',
+    body: () => `
+      <ul class="instructions">
+        <li><strong>Position the tub</strong> close enough to the chiller that the supplied hoses will reach without stretching. Don't extend hoses beyond 3 metres.</li>
+        <li><strong>Same level or slightly higher than the chiller</strong> — never put the tub significantly higher, it creates back-pressure on the pump.</li>
+        <li><strong>Locate the inlet and outlet ports</strong> inside the tub. Outlet is lower (water leaves to the chiller), inlet is higher (chilled water returns).</li>
+        <li><strong>Don't fill yet</strong> — we'll do that after connecting the chiller.</li>
+      </ul>
+      <div class="callout callout-tip">
+        <span class="icon">📏</span>
+        <div>The tub is 169cm × 79.5cm × 59cm and weighs 60kg empty. Get help moving it.</div>
+      </div>
+    `,
+    checks: [
+      "Tub is in its final position",
+      "Tub is on level ground",
+      "Hoses will reach the chiller without stretching",
+      "I've identified the inlet and outlet ports"
+    ]
+  },
+
+  // STEP 4 — Sediment filter & hoses
+  {
+    phase: 'Plumbing',
+    title: 'Install sediment filter & hoses on the chiller',
+    intro: "We start at the chiller end. Plumbers tape on every threaded connection — this is the #1 way to prevent leaks.",
+    diagram: SVG.sediment,
+    diagramCaption: 'External sediment filter — black on top, clear housing on bottom',
+    body: () => `
+      <ul class="instructions">
+        <li><strong>Remove the plugs</strong> from the chiller's water inlet and outlet ports.</li>
+        <li><strong>Wrap plumbers tape</strong> around the threads of the inlet and outlet (3–4 wraps, clockwise).</li>
+        <li><strong>Screw the sediment filter</strong> onto the chiller's water inlet (bottom port). Black part on top, clear housing on bottom. Tighten firmly — about 4kg of torque, or "firm but not gorilla-grip".</li>
+        <li><strong>Place a rubber sealing ring</strong> into one end of each connection hose.</li>
+        <li><strong>Attach one hose</strong> to the sediment filter (which is on the chiller's inlet).</li>
+        <li><strong>Attach the other hose</strong> to the chiller's outlet.</li>
+      </ul>
+      <div class="callout callout-tip">
+        <span class="icon">💧</span>
+        <div><strong>Why the sediment filter?</strong> It catches debris before it hits the main filter, extending the life of both.</div>
+      </div>
+    `,
+    checks: [
+      "Plumbers tape applied to chiller threads",
+      "Sediment filter screwed onto chiller inlet (clear housing down)",
+      "Rubber sealing ring in each hose end",
+      "Hose connected to sediment filter / chiller inlet",
+      "Hose connected to chiller outlet"
+    ]
+  },
+
+  // STEP 5 — Internal filter
+  {
+    phase: 'Plumbing',
+    title: 'Install the internal filter',
+    intro: "The internal filter sits inside its housing on the chiller. Easy job — just don't forget to remove the plastic.",
+    diagram: SVG.filter,
+    diagramCaption: 'Internal filter housing — cartridge sits inside the clear chamber',
+    body: () => `
+      <ul class="instructions">
+        <li><strong>Find the internal filter housing</strong> on the chiller (clear cylinder).</li>
+        <li><strong>Unscrew the filter holder</strong> from the housing. Use the supplied wrench if it's tight.</li>
+        <li><strong>Take a fresh filter cartridge</strong> and <strong>remove ALL plastic packaging</strong>. This is the most-missed step.</li>
+        <li><strong>Place the cartridge</strong> into the filter holder.</li>
+        <li><strong>Screw the holder back into the housing</strong>, tightening firmly with the wrench.</li>
+      </ul>
+      <div class="callout callout-danger">
+        <span class="icon">⚠</span>
+        <div><strong>Plastic still on the filter</strong> = no water flow = chiller error. Double-check before sealing it up.</div>
+      </div>
+    `,
+    checks: [
+      "Filter holder unscrewed from housing",
+      "Plastic packaging fully removed from cartridge",
+      "Cartridge inserted into holder",
+      "Holder screwed back in firmly"
+    ]
+  },
+
+  // STEP 6 — Connect to tub
+  {
+    phase: 'Plumbing',
+    title: 'Connect the chiller to the tub',
+    intro: "Pay close attention to direction — inlet to outlet, outlet to inlet. Crossing them will mean weak performance.",
+    diagram: SVG.connections,
+    diagramCaption: 'Cold water (blue) returns to tub inlet · warm water (orange) leaves tub outlet to chiller',
+    body: () => `
+      <ul class="instructions">
+        <li><strong>Wrap plumbers tape</strong> on the tub's inlet and outlet threads if needed.</li>
+        <li><strong>Place a rubber sealing ring</strong> into the free end of each hose.</li>
+        <li><strong>Connect the chiller's INLET hose to the tub's OUTLET</strong> port (the one taking water out of the tub).</li>
+        <li><strong>Connect the chiller's OUTLET hose to the tub's INLET</strong> port (returning chilled water).</li>
+        <li><strong>Hand-tighten firmly</strong>. Don't over-crank — the rubber rings do the sealing.</li>
+      </ul>
+      <div class="callout callout-tip">
+        <span class="icon">🎯</span>
+        <div><strong>Memory trick:</strong> Water leaves the tub from the outlet (low), gets chilled, and returns through the inlet (high). Reversed connections = the system works against itself.</div>
+      </div>
+    `,
+    checks: [
+      "Plumbers tape on tub threads (if needed)",
+      "Rubber sealing rings in hose ends",
+      "Chiller INLET hose → Tub OUTLET",
+      "Chiller OUTLET hose → Tub INLET",
+      "Both connections firmly hand-tight"
+    ]
+  },
+
+  // STEP 7 — Fill & safety check
+  {
+    phase: 'First Run',
+    title: 'Fill the tub & test safety',
+    intro: "Almost there. Fill the tub, then run a leakage test before any power is committed.",
+    diagram: SVG.testBtn,
+    diagramCaption: 'Press TEST on the leakage switch — it should trip immediately',
+    body: () => `
+      <ul class="instructions">
+        <li><strong>Fill with normal tap water</strong> — no salt, pool water, or additives.</li>
+        <li><strong>Cover the inlet and outlet ports</strong> inside the tub first, then fill to about <strong>10cm from the top</strong> (the tub holds 380L).</li>
+        <li><strong>Walk around all four connections</strong> — chiller inlet, chiller outlet, tub inlet, tub outlet — and check for drips. Tighten if needed.</li>
+        <li><strong>Plug the chiller into the weatherproof outlet.</strong></li>
+        <li><strong>Press the TEST button</strong> on the leakage switch (on the chiller's plug or near it). It should trip immediately. Reset it.</li>
+      </ul>
+      <div class="callout callout-warn">
+        <span class="icon">💧</span>
+        <div><strong>If you see any leak</strong> at a connection — stop, unplug, drain that area, re-tape, and reseat the rubber ring. Don't run the chiller with leaks.</div>
+      </div>
+    `,
+    checks: [
+      "Tub filled to ~10cm from top with tap water",
+      "All 4 connections checked for leaks",
+      "Chiller plugged into weatherproof outlet",
+      "TEST button pressed — leakage protection works",
+      "Leakage switch reset"
+    ]
+  },
+
+  // STEP 8 — Power on & temperature
+  {
+    phase: 'First Run',
+    title: 'Power on & set temperature',
+    intro: "First chill takes a few hours. Set your target temp and let it run.",
+    diagram: SVG.controlPanel,
+    diagramCaption: 'Käldr control panel · current temperature shown · SET → adjust target',
+    body: () => `
+      <ul class="instructions">
+        <li><strong>Press the power button</strong> on the chiller (⏻).</li>
+        <li><strong>Press SET</strong> until the temperature display starts flashing.</li>
+        <li><strong>Use UP/DOWN</strong> to choose your target temperature. (Beginners: start at 8–10°C, work down.)</li>
+        <li><strong>Wait a few hours</strong> for the water to reach target. The 1HP can take 280L from 30°C → 0°C in under 4 hours; your full 380L will take a bit longer the first time.</li>
+        <li><strong>Optional: connect Wi-Fi</strong> — hold SET for 5 seconds, then pair via the TUYA Smart app on a 2.4GHz network.</li>
+      </ul>
+      <div class="callout callout-tip">
+        <span class="icon">📱</span>
+        <div><strong>App tip:</strong> 2.4GHz Wi-Fi only — 5GHz won't work. If you can't get on, try moving closer to the router during pairing.</div>
+      </div>
+      <div class="callout callout-warn">
+        <span class="icon">🛁</span>
+        <div><strong>Before getting in:</strong> Turn the chiller OFF and unplug it once water reaches target. Never plunge with the chiller running.</div>
+      </div>
+    `,
+    checks: [
+      "Chiller powered on",
+      "Target temperature set",
+      "Wi-Fi connected (optional)",
+      "Confirmed: turn chiller off before plunging"
+    ]
+  }
+];
+
+/* ============================================================
+   STATE & PERSISTENCE
+   ============================================================ */
+
+const STORAGE_KEY = 'kaldr_setup_state_v1';
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { current: 0, checks: {}, completed: [] };
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+
+function render() {
+  const i = state.current;
+  const step = STEPS[i];
+  const total = STEPS.length;
+  const isComplete = i >= total;
+
+  // Progress
+  const completedCount = state.completed.length;
+  const pct = Math.round((completedCount / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('pctText').textContent = pct + '%';
+  document.getElementById('stepNum').textContent = Math.min(i + 1, total);
+  document.getElementById('stepTotal').textContent = total;
+
+  // Dots
+  const dots = document.getElementById('stepDots');
+  dots.innerHTML = '';
+  STEPS.forEach((_, idx) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    if (state.completed.includes(idx)) d.classList.add('done');
+    if (idx === i) d.classList.add('active');
+    d.title = `Step ${idx + 1}: ${STEPS[idx].title}`;
+    d.addEventListener('click', () => { state.current = idx; saveState(); render(); });
+    dots.appendChild(d);
+  });
+
+  // Container
+  const container = document.getElementById('stepContainer');
+
+  if (isComplete) {
+    container.innerHTML = `
+      <div class="step-card completion">
+        <div class="badge">✓</div>
+        <h2>You're all set up.</h2>
+        <p style="color: var(--text-dim); max-width: 500px; margin: 12px auto;">
+          Your Käldr is plumbed, filled, tested, and chilling. Once the water hits your target,
+          turn the chiller off and unplug before getting in. Welcome to cold therapy.
+        </p>
+        <div class="callout callout-tip" style="text-align: left; margin-top: 24px;">
+          <span class="icon">📅</span>
+          <div><strong>Maintenance reminder:</strong> Replace the internal filter and clean the sediment filter every 2–4 weeks (or every 10–20 plunges). Change the water at the same interval.</div>
+        </div>
+      </div>
+    `;
+    document.getElementById('prevBtn').textContent = '← Review steps';
+    document.getElementById('nextBtn').textContent = 'Done';
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('prevBtn').disabled = false;
+    return;
+  }
+
+  let html = `
+    <div class="step-card">
+      <div class="step-meta">
+        <span class="num">${String(i + 1).padStart(2, '0')}</span>
+        <span class="phase">${step.phase}</span>
+      </div>
+      <h2 class="step-title">${step.title}</h2>
+      <p class="step-intro">${step.intro}</p>
+  `;
+
+  if (step.diagram) {
+    html += `
+      <div class="diagram">
+        ${step.diagram}
+        ${step.diagramCaption ? `<div class="diagram-caption">${step.diagramCaption}</div>` : ''}
+      </div>
+    `;
+  }
+
+  if (step.body) html += step.body();
+
+  if (step.checks && step.checks.length) {
+    html += `<div class="checklist"><div class="checklist-title">Tap to confirm</div>`;
+    step.checks.forEach((text, idx) => {
+      const key = `s${i}_c${idx}`;
+      const checked = !!state.checks[key];
+      html += `
+        <div class="check-item ${checked ? 'checked' : ''}" data-key="${key}">
+          <div class="check-box"></div>
+          <div class="check-text">${text}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+
+  // Wire up checks
+  document.querySelectorAll('.check-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.key;
+      el.classList.toggle('checked');
+      state.checks[key] = el.classList.contains('checked');
+      maybeMarkStepComplete(i);
+      saveState();
+      render();
+    });
+  });
+
+  // Run any onMount hook
+  if (step.onMount) step.onMount();
+
+  // Nav
+  document.getElementById('prevBtn').disabled = i === 0;
+  document.getElementById('prevBtn').textContent = '← Back';
+  const allChecksDone = !step.checks?.length || step.checks.every((_, idx) => state.checks[`s${i}_c${idx}`]);
+  document.getElementById('nextBtn').disabled = false;
+  document.getElementById('nextBtn').textContent =
+    i === 0 ? 'Start →' : (i === total - 1 ? (allChecksDone ? 'Finish ✓' : 'Skip to finish →') : (allChecksDone ? 'Next step →' : 'Next (skip checks) →'));
+}
+
+function maybeMarkStepComplete(idx) {
+  const step = STEPS[idx];
+  if (!step.checks?.length) {
+    if (!state.completed.includes(idx)) state.completed.push(idx);
+    return;
+  }
+  const allDone = step.checks.every((_, c) => state.checks[`s${idx}_c${c}`]);
+  if (allDone && !state.completed.includes(idx)) state.completed.push(idx);
+  if (!allDone && state.completed.includes(idx)) {
+    state.completed = state.completed.filter(x => x !== idx);
+  }
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  // Auto-mark steps with no checks as completed when advancing
+  if (state.current < STEPS.length) {
+    const step = STEPS[state.current];
+    if (!step.checks?.length && !state.completed.includes(state.current)) {
+      state.completed.push(state.current);
+    }
+  }
+  if (state.current < STEPS.length) {
+    state.current++;
+  }
+  saveState();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  render();
+});
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if (state.current > 0) {
+    state.current--;
+    saveState();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    render();
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (confirm('Reset all progress? You\'ll start from step 1 with all checkboxes cleared.')) {
+    state = { current: 0, checks: {}, completed: [] };
+    saveState();
+    render();
+  }
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>
